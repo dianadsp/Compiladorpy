@@ -1,1 +1,4 @@
-# Compiladorpy
+Para correr:
+´´´´
+python Compilador.py
+´´´´
