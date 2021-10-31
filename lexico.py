@@ -1,5 +1,6 @@
 import re
 import numpy as np
+
 class analizador_lexico:
     
     reserver_words = [  "INTEGER",
@@ -14,10 +15,29 @@ class analizador_lexico:
                         "PRINT",
                         "PLOT"]
 
+    res_types = {
+        "INTEGER"   :"t",
+        "FLOAT"     :"t",
+        "STRING"    :"t",
+        "LIST"      :"t",
+        "IF"        :"j",
+        "ELSE"      :"k",
+        "WHILE"     :"w",
+        "FUNCTION"  :"f",
+        "RETURN"    :"g",
+        "PRINT"     :"p",
+        "PLOT"      :"p"
+     }
+
     delimiters = ['(',')',',',';','{','}','[',']']
     operadores_one = ['+','-','*','/','=','>','<']
     operadores_two = ['<=','>=','==','!=','+=']
     operators = operadores_one+operadores_two
+
+    op_aritmeticos = ['+','-','*','/']
+    op_comparativo = ['>','<']+operadores_two
+
+
 
     def __init__(self):
         pass
@@ -93,48 +113,61 @@ class analizador_lexico:
 
 
     def parse_code (self, list_code):
-        op_code = ["NULL"]*len(list_code)
-        
+        op_code = ["ERROR"]*len(list_code)
+        op_sint = ["#"]*len(list_code)
         for i, w in enumerate(list_code):
             # Busca palabras delimiters
             if w in self.delimiters:
                 p_w = self.delimiters.index(w)
                 op_code[i] = "DELIMITER_"+self.delimiters[p_w]
+                op_sint[i] = self.delimiters[p_w] 
             # Busca palabras operators
             if w in self.operators:
                 p_w = self.operators.index(w)
                 op_code[i] = "OPERATOR_"+self.operators[p_w]
+                if self.operators[p_w] in self.op_aritmeticos:
+                    op_sint[i] = "o"
+                elif self.operators[p_w] in self.op_comparativo:
+                    op_sint[i] = "a"
+                else:
+                    op_sint[i] = self.operators[p_w]
             # parse integer
             _patron = r'^[0-9]*$'
             patron = re.compile(_patron)
             if patron.search(w):
                 op_code[i] = "INTEGER"
+                op_sint[i] = "n"
             # parse decimal
             _patron = r'^\d*\.\d+$'
             patron = re.compile(_patron)
             if patron.search(w):
                 op_code[i] = "REAL"
+                op_sint[i] = "r"
             # parse strings
             _patron = r'^"[\w\W]*"$'
             patron = re.compile(_patron)
             if patron.search(w):
                 op_code[i] = "STRING"
+                op_sint[i] = "l"
             # parse identificadores
             _patron = r'^[a-zA-Z][a-zA-Z0-9_]*$'
             patron = re.compile(_patron)
             if patron.search(w):
                 op_code[i] = "ID_NAME"
+                op_sint[i] = "i"
             # Busca palabras reservadas
             if w in self.reserver_words:
                 p_w = self.reserver_words.index(w)
-                op_code[i] = "RESERVER_"+self.reserver_words[p_w]           
+                op_code[i] = "RESERVER_"+self.reserver_words[p_w]
+                op_sint[i] = self.res_types[self.reserver_words[p_w]]
             # parse comentarios
             _patron = r'^#[\w\W]*$'
             patron = re.compile(_patron)
             if patron.search(w):
                 op_code[i] = "COMMENT"
+                op_sint[i] = "#"
 
-        return op_code 
+        return op_code,op_sint
 
 
     def search_position (self, str_code, words):
@@ -158,11 +191,12 @@ class analizador_lexico:
 
     def run (self, _str_code):
         words = self.detect_comment(_str_code)
-        tokens = self.parse_code (words)
+        tokens, sintax = self.parse_code (words)
         positions = self.search_position (_str_code, words)
         return {"words":words,
                 "tokens":tokens,
-                "positions": positions}
+                "positions": positions,
+                "sintax":sintax}
         
 ej_code = """
 
