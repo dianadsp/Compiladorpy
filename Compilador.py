@@ -1,9 +1,24 @@
 
 import lexico
+import sintactico
 import tkinter as tk
 from tkinter.font import Font
 
+
+
 s_code = """
+#Esto es un comentario
+&Esto _es %un $ERROR
+
+FLOAT max_count = 10.0;
+INTEGER max_tabla = 200;
+STRING str_p = "Hola Mundo";
+LIST L_tabla = [100,"Adios",max_tabla,3.14];
+
+"""
+
+
+s_code2 = """
 #Esto es un comentario
 &Esto _es %un $ERROR
 
@@ -130,6 +145,11 @@ class Pad(tk.Frame):
         words = r_lexico["words"]
         positions = r_lexico["positions"]
         tokens = r_lexico["tokens"]
+        sintax = r_lexico["sintax"]
+        str_expr = "".join(sintax).replace("#","")+"$"
+        sintactico.main (str_expr)
+        print ("Expresion Sintactica:", str_expr,"\n\n")
+
         self.text2.config(state="normal")
         self.text2.delete("1.0","end")
         self.text2.insert("end", "Resultado de Analizador Lexico:\n\n")
@@ -150,7 +170,7 @@ class Pad(tk.Frame):
 
             init_str2 = str(fline)+'.'+str(fpos+3)
             end_str2 =  str(fline)+'.'+str(fpos+3+len(tokens[i]))
-            if tokens[i] != "NULL":
+            if tokens[i] != "ERROR":
                 self.text2.tag_add('token',init_str2 , end_str2)
             else:
                 self.text2.tag_add('null',init_str2 , end_str2)
